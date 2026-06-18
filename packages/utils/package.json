@@ -1,0 +1,17 @@
+{
+  "name": "@myskillora/utils",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "devDependencies": {
+    "@myskillora/tsconfig": "workspace:*",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "tailwind-merge": "^2.6.0"
+  }
+}

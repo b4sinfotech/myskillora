@@ -1,0 +1,9 @@
+{
+  "name": "@myskillora/config",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./tailwind": "./tailwind.config.ts",
+    "./eslint": "./eslint.config.mjs"
+  }
+}

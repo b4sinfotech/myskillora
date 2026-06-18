@@ -1,0 +1,15 @@
+{
+  "name": "@myskillora/types",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./database": "./src/database.ts",
+    "./api": "./src/api.ts",
+    "./domain": "./src/domain.ts"
+  },
+  "devDependencies": {
+    "@myskillora/tsconfig": "workspace:*",
+    "typescript": "^5.7.3"
+  }
+}
