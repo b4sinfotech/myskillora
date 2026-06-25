@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserCheck, CalendarDays, DollarSign, Star, AlertTriangle } from "lucide-react";
-import { formatCurrencyRaw } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Admin Dashboard" };
@@ -44,7 +44,7 @@ export default async function AdminDashboardPage() {
         <StatCard title="Active Teachers" value={totalTeachers ?? 0} icon={UserCheck} iconColor="text-success" />
         <StatCard title="Students" value={totalStudents ?? 0} icon={Users} iconColor="text-primary" />
         <StatCard title="Bookings" value={totalBookings ?? 0} icon={CalendarDays} iconColor="text-accent" />
-        <StatCard title="Revenue" value={formatCurrencyRaw(totalRevenue)} icon={DollarSign} iconColor="text-success" />
+        <StatCard title="Revenue" value={formatCurrency(totalRevenue)} icon={DollarSign} iconColor="text-success" />
         <StatCard
           title="Pending Approvals"
           value={pendingApprovals ?? 0}
@@ -92,7 +92,7 @@ export default async function AdminDashboardPage() {
                         {booking.status}
                       </span>
                     </td>
-                    <td className="py-2 px-3 text-right font-medium">{formatCurrencyRaw(booking.amount)}</td>
+                    <td className="py-2 px-3 text-right font-medium">{formatCurrency(booking.amount)}</td>
                   </tr>
                 ))}
               </tbody>

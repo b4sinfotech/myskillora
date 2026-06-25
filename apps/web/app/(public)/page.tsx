@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Star, Users, BookOpen, Shield, Zap, Award } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "myskillora — Find Expert Teachers for Every Skill",
+  description: "Connect with verified teachers for academic subjects, music, sports, and more. Book sessions, learn faster, grow faster.",
+};
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";

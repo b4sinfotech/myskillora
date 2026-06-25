@@ -33,8 +33,7 @@ export async function GET(request: Request) {
         subjects:teacher_subjects(category:categories(name, slug))
       `)
       .eq("is_approved", true)
-      .eq("is_active", true)
-      .textSearch("search_vector", q, { type: "websearch" })
+      .textSearch("headline", q, { type: "websearch", config: "english" })
       .order("rating_average", { ascending: false })
       .range(offset, offset + pageSize - 1);
 
@@ -44,9 +43,9 @@ export async function GET(request: Request) {
   if (type === "all" || type === "categories") {
     const { data } = await supabase
       .from("categories")
-      .select("id, name, slug, description, type, icon")
+      .select("id, name, slug, description, type, icon_url")
       .eq("is_active", true)
-      .textSearch("search_vector", q, { type: "websearch" })
+      .ilike("name", `%${q}%`)
       .limit(8);
 
     results.categories = data ?? [];

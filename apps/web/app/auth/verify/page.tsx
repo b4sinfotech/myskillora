@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { MailCheck } from "lucide-react";
+
+export const metadata: Metadata = { title: "Verify Email" };
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 

@@ -54,7 +54,6 @@ export default async function StudentReviewsPage() {
                         />
                       ))}
                     </div>
-                    {review.title && <p className="font-medium text-sm">{review.title}</p>}
                     {review.body && <p className="text-sm text-muted-foreground mt-1">{review.body}</p>}
                   </div>
                   <span className="font-heading font-bold text-xl text-accent shrink-0">

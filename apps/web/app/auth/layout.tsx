@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: { template: "%s — myskillora", default: "Sign In — myskillora" },
+  description: "Sign in or create your myskillora account.",
+};
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -4,7 +4,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, TrendingUp, Clock, CheckCircle } from "lucide-react";
-import { formatCurrencyRaw, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Earnings" };
@@ -51,9 +51,9 @@ export default async function TeacherEarningsPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Earned" value={formatCurrencyRaw(totalEarned)} icon={DollarSign} iconColor="text-success" />
-        <StatCard title="Total Paid Out" value={formatCurrencyRaw(totalPaidOut)} icon={CheckCircle} iconColor="text-info" />
-        <StatCard title="Pending Payout" value={formatCurrencyRaw(pendingPayout)} icon={Clock} iconColor="text-amber-500" />
+        <StatCard title="Total Earned" value={formatCurrency(totalEarned)} icon={DollarSign} iconColor="text-success" />
+        <StatCard title="Total Paid Out" value={formatCurrency(totalPaidOut)} icon={CheckCircle} iconColor="text-info" />
+        <StatCard title="Pending Payout" value={formatCurrency(pendingPayout)} icon={Clock} iconColor="text-amber-500" />
         <StatCard title="Sessions" value={completedBookings.length} icon={TrendingUp} iconColor="text-primary" />
       </div>
 
@@ -75,7 +75,7 @@ export default async function TeacherEarningsPage() {
                       {(booking.category as { name: string } | null)?.name} • {formatDate(booking.session_date)}
                     </p>
                   </div>
-                  <p className="font-heading font-bold text-success">{formatCurrencyRaw(booking.teacher_payout)}</p>
+                  <p className="font-heading font-bold text-success">{formatCurrency(booking.teacher_payout)}</p>
                 </div>
               ))}
             </div>
@@ -94,7 +94,7 @@ export default async function TeacherEarningsPage() {
               {payouts.map((payout) => (
                 <div key={payout.id} className="flex items-center justify-between p-3 rounded-lg border">
                   <div>
-                    <p className="font-medium text-sm">{formatCurrencyRaw(payout.amount)}</p>
+                    <p className="font-medium text-sm">{formatCurrency(payout.amount)}</p>
                     <p className="text-xs text-muted-foreground">
                       {formatDate(payout.period_start)} — {formatDate(payout.period_end)}
                     </p>

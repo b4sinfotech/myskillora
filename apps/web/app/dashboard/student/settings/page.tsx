@@ -18,10 +18,12 @@ export default async function StudentSettingsPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <h1 className="font-heading text-2xl font-bold text-primary">Account Settings</h1>
-      <ProfileSettingsForm
-        user={userRes.data}
-        profile={profileRes.data}
-      />
+      {userRes.data && (
+        <ProfileSettingsForm
+          user={userRes.data}
+          profile={profileRes.data}
+        />
+      )}
     </div>
   );
 }

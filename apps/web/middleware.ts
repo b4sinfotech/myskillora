@@ -1,6 +1,5 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import type { Database } from "@myskillora/types/database";
+import { createMiddlewareClient } from "@/lib/supabase/middleware";
 
 const PUBLIC_ROUTES = [
   "/",
@@ -24,28 +23,7 @@ function isPublicRoute(pathname: string): boolean {
 }
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
-
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+  const { supabase, response: supabaseResponse } = createMiddlewareClient(request);
 
   const { data: { user } } = await supabase.auth.getUser();
   const { pathname } = request.nextUrl;
@@ -58,29 +36,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Authenticated user hitting auth pages — redirect to their dashboard
-  if (user && (pathname.startsWith("/auth/login") || pathname.startsWith("/auth/signup"))) {
-    const { data: userData } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    const role = userData?.role ?? "student";
-    const dashboardUrl = request.nextUrl.clone();
-
-    if (role === "admin") {
-      dashboardUrl.pathname = "/admin";
-    } else if (role === "teacher") {
-      dashboardUrl.pathname = "/dashboard/teacher";
-    } else {
-      dashboardUrl.pathname = "/dashboard/student";
-    }
-
-    return NextResponse.redirect(dashboardUrl);
-  }
-
-  // Role-based route protection
+  // Authenticated user — fetch role once for all role-based decisions
   if (user) {
     const { data: userData } = await supabase
       .from("users")
@@ -90,6 +46,20 @@ export async function middleware(request: NextRequest) {
 
     const role = userData?.role ?? "student";
 
+    // Redirect away from auth pages
+    if (pathname.startsWith("/auth/login") || pathname.startsWith("/auth/signup")) {
+      const dashboardUrl = request.nextUrl.clone();
+      if (role === "admin") {
+        dashboardUrl.pathname = "/admin";
+      } else if (role === "teacher") {
+        dashboardUrl.pathname = "/dashboard/teacher";
+      } else {
+        dashboardUrl.pathname = "/dashboard/student";
+      }
+      return NextResponse.redirect(dashboardUrl);
+    }
+
+    // Role-based route protection
     const isAdminRoute = ADMIN_ROUTES.some((r) => pathname.startsWith(r));
     const isTeacherRoute = TEACHER_ROUTES.some((r) => pathname.startsWith(r));
     const isStudentRoute = STUDENT_ROUTES.some((r) => pathname.startsWith(r));

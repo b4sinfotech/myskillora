@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { formatDate, formatCurrencyRaw, formatRelativeTime } from "@/lib/utils";
+import { formatDate, formatCurrency, formatRelativeTime } from "@/lib/utils";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Student Dashboard" };
@@ -69,7 +69,7 @@ export default async function StudentOverviewPage() {
         />
         <StatCard
           title="Total Invested"
-          value={formatCurrencyRaw(totalSpend)}
+          value={formatCurrency(totalSpend)}
           icon={Clock}
           iconColor="text-primary"
         />

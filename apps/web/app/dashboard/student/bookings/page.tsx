@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CalendarDays } from "lucide-react";
 import Link from "next/link";
-import { formatDate, formatCurrencyRaw } from "@/lib/utils";
+import { formatDate, formatCurrency } from "@/lib/utils";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "My Bookings" };
@@ -101,7 +101,7 @@ export default async function StudentBookingsPage({
                       {formatDate(booking.session_date)} at {booking.session_time} •{" "}
                       {booking.duration_minutes} min
                     </p>
-                    <p className="text-sm font-medium mt-1">{formatCurrencyRaw(booking.amount)}</p>
+                    <p className="text-sm font-medium mt-1">{formatCurrency(booking.amount)}</p>
                   </div>
                   <div className="flex gap-2">
                     {booking.status === "confirmed" && booking.meeting_link && (

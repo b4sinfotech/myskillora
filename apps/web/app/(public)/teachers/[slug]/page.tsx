@@ -4,12 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { ReviewCard } from "@/components/ui/review-card";
 import { Separator } from "@/components/ui/separator";
-import { formatRating, formatCurrencyRaw, initials, getAvatarUrl } from "@/lib/utils";
+import { BookingCard } from "@/components/booking/BookingCard";
+import { formatRating, initials, getAvatarUrl } from "@/lib/utils";
 import { SUBJECT_COLORS } from "@myskillora/types";
-import type { TeacherWithDetails, ReviewWithStudent } from "@myskillora/types";
+import type { TeacherWithDetails, ReviewWithStudent, Category } from "@myskillora/types";
 import type { Metadata } from "next";
 
 interface PageProps {
@@ -50,7 +50,8 @@ export default async function TeacherProfilePage({ params }: PageProps) {
       profile:profiles!profiles_user_id_fkey(bio, city, state, country),
       subjects:teacher_subjects(*, category:categories(*)),
       fees:teacher_fees(*),
-      videos:sample_videos(*)
+      videos:sample_videos(*),
+      availability:teacher_availability(*)
     `)
     .eq("id", teacherId)
     .eq("is_approved", true)
@@ -223,45 +224,14 @@ export default async function TeacherProfilePage({ params }: PageProps) {
             <Card>
               <CardContent className="p-6">
                 <h3 className="font-heading font-bold text-xl text-primary mb-4">Book a Session</h3>
-
-                {t.fees.filter((f) => f.is_active).length > 0 ? (
-                  <div className="space-y-3 mb-6">
-                    {t.fees
-                      .filter((f) => f.is_active)
-                      .map((fee) => (
-                        <div
-                          key={fee.id}
-                          className="flex items-center justify-between p-3 rounded-lg border hover:border-accent transition-colors cursor-pointer"
-                        >
-                          <div>
-                            <p className="font-medium text-sm capitalize">{fee.session_type}</p>
-                            {fee.duration_minutes && (
-                              <p className="text-xs text-muted-foreground">
-                                {fee.duration_minutes} min
-                              </p>
-                            )}
-                            {fee.description && (
-                              <p className="text-xs text-muted-foreground">{fee.description}</p>
-                            )}
-                          </div>
-                          <p className="font-heading font-bold text-primary">
-                            {formatCurrencyRaw(fee.amount)}
-                          </p>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground mb-6">
-                    Contact teacher for pricing details.
-                  </p>
-                )}
-
-                <Button variant="amber" size="lg" className="w-full">
-                  Request Booking
-                </Button>
-                <p className="text-xs text-muted-foreground text-center mt-3">
-                  Secure payment via Razorpay
-                </p>
+                <BookingCard
+                  teacherUserId={t.user_id}
+                  teacherName={t.user?.full_name ?? "Teacher"}
+                  teacherAvatarUrl={t.user?.avatar_url ?? null}
+                  fees={t.fees}
+                  availability={(t as unknown as { availability: import("@myskillora/types").TeacherAvailability[] }).availability ?? []}
+                  categories={t.subjects.map((s) => s.category as Category).filter(Boolean)}
+                />
               </CardContent>
             </Card>
 

@@ -183,7 +183,103 @@ WHERE email = 'your-admin@email.com';
 
 ---
 
-## 11. Deploy to Vercel
+## 11. Load Test Data
+
+Once the schema is running and your environment variables are set, populate the database with realistic test data so you can log in and test every feature immediately.
+
+### 11a. Add your service role key to .env.local
+
+The test data seeder needs admin-level database access. In `apps/web/.env.local`, make sure `SUPABASE_SERVICE_ROLE_KEY` is set (get it from Supabase → Project Settings → API → service_role).
+
+### 11b. Run the seeder
+
+```bash
+pnpm db:seed:test
+```
+
+This creates:
+
+| Account | Email | Password |
+|---------|-------|----------|
+| Admin | admin@test.myskillora.com | TestAdmin@123 |
+| Teacher (English) | teacher1@test.myskillora.com | TestTeacher@123 |
+| Teacher (Maths) | teacher2@test.myskillora.com | TestTeacher@123 |
+| Teacher (Music) | teacher3@test.myskillora.com | TestTeacher@123 |
+| Teacher (Martial Arts) | teacher4@test.myskillora.com | TestTeacher@123 |
+| Teacher (Tamil) | teacher5@test.myskillora.com | TestTeacher@123 |
+| Student 1 | student1@test.myskillora.com | TestStudent@123 |
+| Student 2 | student2@test.myskillora.com | TestStudent@123 |
+
+Plus 10 additional approved faker teachers, 3 pending faker teachers, 8 faker students, 30 bookings, 20 reviews, 15 message conversations, and payment records.
+
+### 11c. Reset test data
+
+To wipe all test accounts and re-seed from scratch:
+
+```bash
+pnpm db:reset:test   # deletes test auth users (cascades to all their data)
+pnpm db:seed:test    # re-creates everything
+```
+
+---
+
+## 12. Manual Testing Checklist
+
+Run through this checklist after setting up. Use the test accounts from Section 11.
+
+### Student Flow
+
+- [ ] Sign in as `student1@test.myskillora.com`
+- [ ] Browse to `/teachers` — confirm teacher cards load with names, ratings, fees
+- [ ] Use the subject filter — confirm results update
+- [ ] Click a teacher card — confirm profile page loads with bio, videos, fees
+- [ ] Click **Request Booking** — confirm the booking modal opens
+- [ ] Step 1: Select a fee plan — confirm the "Next" button activates
+- [ ] Step 2: Select a date — confirm only days matching the teacher's availability appear
+- [ ] Step 2: Select a time slot — confirm slots are within the teacher's hours
+- [ ] Step 3: Click **Proceed to Payment** — confirm a booking record is created in Supabase
+- [ ] Complete payment with Razorpay test card: `4111 1111 1111 1111`, any future date, any CVV
+- [ ] Confirm redirect to `/dashboard/student/bookings` after success
+- [ ] Open `/dashboard/student/notifications` — confirm a "Booking Confirmed" notification appears
+- [ ] Open `/dashboard/student/messages` — confirm the chat interface loads
+- [ ] Open `/dashboard/student/reviews` — confirm completed booking reviews are listed
+
+### Teacher Flow
+
+- [ ] Sign in as `teacher1@test.myskillora.com`
+- [ ] Confirm redirect to `/dashboard/teacher`
+- [ ] Open `/dashboard/teacher/bookings` — confirm pending bookings are listed
+- [ ] Open `/dashboard/teacher/earnings` — confirm earnings totals and booking history
+- [ ] Open `/dashboard/teacher/messages` — confirm the chat interface loads
+- [ ] Open `/dashboard/teacher/notifications` — confirm booking notifications appear
+- [ ] Open `/dashboard/teacher/onboarding` — confirm the 5-step wizard pre-fills existing data
+- [ ] Update Step 2 (fees) — confirm the change appears on the public profile page
+
+### Admin Flow
+
+- [ ] Sign in as `admin@test.myskillora.com`
+- [ ] Confirm redirect to `/admin`
+- [ ] Open `/admin/teachers?status=pending` — confirm 3 pending faker teachers are listed
+- [ ] Approve one teacher — confirm their status changes to approved
+- [ ] Reject another — confirm a reason is logged
+- [ ] Open `/admin/categories` — confirm all 27 categories are listed
+- [ ] Add a new category — confirm it appears in the list
+- [ ] Toggle a category active/inactive — confirm the change persists
+- [ ] Open `/admin/bookings` — confirm all 30 seed bookings are listed
+- [ ] Open `/admin/payments` — confirm payment records match bookings
+- [ ] Open `/admin/reviews` — confirm 20 reviews are listed
+- [ ] Open `/admin/settings` — confirm platform settings are editable
+- [ ] Open `/admin/audit` — confirm audit log entries are present
+
+### Chat Content Filter
+
+- [ ] Sign in as `student1@test.myskillora.com`
+- [ ] Open a message thread and send a message containing a phone number: `Call me at 98765 43210`
+- [ ] Confirm the message is stored with `is_filtered = true` and displayed as `[contact info removed]`
+
+---
+
+## 13. Deploy to Vercel
 
 ### 11a. Push to GitHub
 ```bash
@@ -223,7 +319,7 @@ CI will run automatically on every push to `main`.
 
 ---
 
-## Troubleshooting
+## 14. Troubleshooting
 
 **`pnpm install` fails**
 - Make sure you're using Node.js 20+: `node --version`

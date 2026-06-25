@@ -1,0 +1,27 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { ProfileSettingsForm } from "@/components/settings/ProfileSettingsForm";
+import type { User, Profile } from "@myskillora/types";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Settings" };
+
+export default async function TeacherSettingsPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/auth/login");
+
+  const [userRes, profileRes] = await Promise.all([
+    supabase.from("users").select("*").eq("id", user.id).single(),
+    supabase.from("profiles").select("*").eq("user_id", user.id).single(),
+  ]);
+
+  if (!userRes.data) redirect("/auth/login");
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <h1 className="font-heading text-2xl font-bold text-primary">Settings</h1>
+      <ProfileSettingsForm user={userRes.data as User} profile={profileRes.data as Profile | null} />
+    </div>
+  );
+}

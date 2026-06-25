@@ -38,7 +38,8 @@ export default async function TeacherOnboardingPage() {
       </div>
       <TeacherOnboardingWizard
         teacherProfile={profileRes.data}
-        subjects={subjectsRes.data ?? []}
+        subjects={(subjectsRes.data ?? []) as unknown as (import("@myskillora/types").TeacherSubject & { category: import("@myskillora/types").Category })[]}
+
         fees={feesRes.data ?? []}
         videos={videosRes.data ?? []}
         availability={availabilityRes.data ?? []}

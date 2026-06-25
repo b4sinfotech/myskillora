@@ -6,20 +6,47 @@
 
 -- Enable required extensions
 create extension if not exists "uuid-ossp";
-create extension if not exists "pg_trgm";      -- for full-text search
-create extension if not exists "unaccent";      -- accent-insensitive search
+create extension if not exists "pg_trgm";
+create extension if not exists "unaccent";
+
+-- =============================================================================
+-- IDEMPOTENCY: Drop all existing public schema policies before recreating.
+-- This makes the migration safe to re-run on an existing database.
+-- Tables and their data are NOT affected.
+-- =============================================================================
+do $$
+declare r record;
+begin
+  for r in (select policyname, tablename from pg_policies where schemaname = 'public') loop
+    execute format('drop policy if exists %I on public.%I', r.policyname, r.tablename);
+  end loop;
+end $$;
+
+-- Drop triggers before recreating (OR REPLACE not available for triggers)
+drop trigger if exists users_updated_at              on public.users;
+drop trigger if exists profiles_updated_at           on public.profiles;
+drop trigger if exists teacher_profiles_updated_at   on public.teacher_profiles;
+drop trigger if exists teacher_availability_updated_at on public.teacher_availability;
+drop trigger if exists bookings_updated_at           on public.bookings;
+drop trigger if exists payments_updated_at           on public.payments;
+drop trigger if exists reviews_updated_at            on public.reviews;
+drop trigger if exists payouts_updated_at            on public.payouts;
+drop trigger if exists on_auth_user_created          on auth.users;
+drop trigger if exists after_review_insert_or_update on public.reviews;
+drop trigger if exists after_booking_status_change   on public.bookings;
+drop trigger if exists after_payment_update          on public.payments;
 
 -- =============================================================================
 -- ENUMS
 -- =============================================================================
 
-create type user_role as enum ('student', 'teacher', 'admin');
-create type category_type as enum ('academic', 'activity', 'professional');
-create type teacher_tier as enum ('bronze', 'silver', 'gold', 'elite');
-create type session_type as enum ('hourly', 'monthly', 'package');
-create type booking_status as enum ('pending', 'confirmed', 'completed', 'cancelled', 'disputed');
-create type payment_status as enum ('created', 'captured', 'failed', 'refunded');
-create type payout_status as enum ('pending', 'processing', 'completed', 'failed');
+do $$ begin create type user_role     as enum ('student', 'teacher', 'admin');         exception when duplicate_object then null; end $$;
+do $$ begin create type category_type as enum ('academic', 'activity', 'professional');   exception when duplicate_object then null; end $$;
+do $$ begin create type teacher_tier  as enum ('bronze', 'silver', 'gold', 'elite');      exception when duplicate_object then null; end $$;
+do $$ begin create type session_type  as enum ('hourly', 'monthly', 'package');           exception when duplicate_object then null; end $$;
+do $$ begin create type booking_status as enum ('pending', 'confirmed', 'completed', 'cancelled', 'disputed'); exception when duplicate_object then null; end $$;
+do $$ begin create type payment_status as enum ('created', 'captured', 'failed', 'refunded');  exception when duplicate_object then null; end $$;
+do $$ begin create type payout_status  as enum ('pending', 'processing', 'completed', 'failed'); exception when duplicate_object then null; end $$;
 
 -- =============================================================================
 -- UTILITY FUNCTIONS
@@ -41,7 +68,7 @@ $$;
 -- TABLE: users (extends auth.users)
 -- =============================================================================
 
-create table public.users (
+create table if not exists public.users (
   id                  uuid primary key references auth.users(id) on delete cascade,
   email               text not null unique,
   full_name           text,
@@ -55,9 +82,9 @@ create table public.users (
   updated_at          timestamptz not null default now()
 );
 
-create index idx_users_role on public.users(role);
-create index idx_users_email on public.users(email);
-create index idx_users_created_at on public.users(created_at desc);
+create index if not exists idx_users_role on public.users(role);
+create index if not exists idx_users_email on public.users(email);
+create index if not exists idx_users_created_at on public.users(created_at desc);
 
 create trigger users_updated_at
   before update on public.users
@@ -92,7 +119,7 @@ create policy "Service role can insert users"
 -- TABLE: profiles
 -- =============================================================================
 
-create table public.profiles (
+create table if not exists public.profiles (
   id                    uuid primary key default uuid_generate_v4(),
   user_id               uuid not null unique references public.users(id) on delete cascade,
   bio                   text,
@@ -107,7 +134,7 @@ create table public.profiles (
   updated_at            timestamptz not null default now()
 );
 
-create index idx_profiles_user_id on public.profiles(user_id);
+create index if not exists idx_profiles_user_id on public.profiles(user_id);
 
 create trigger profiles_updated_at
   before update on public.profiles
@@ -141,7 +168,7 @@ create policy "Admins have full access to profiles"
 -- TABLE: categories
 -- =============================================================================
 
-create table public.categories (
+create table if not exists public.categories (
   id          uuid primary key default uuid_generate_v4(),
   name        text not null,
   slug        text not null unique,
@@ -154,10 +181,10 @@ create table public.categories (
   created_at  timestamptz not null default now()
 );
 
-create index idx_categories_slug on public.categories(slug);
-create index idx_categories_parent_id on public.categories(parent_id);
-create index idx_categories_type on public.categories(type);
-create index idx_categories_is_active on public.categories(is_active);
+create index if not exists idx_categories_slug on public.categories(slug);
+create index if not exists idx_categories_parent_id on public.categories(parent_id);
+create index if not exists idx_categories_type on public.categories(type);
+create index if not exists idx_categories_is_active on public.categories(is_active);
 
 alter table public.categories enable row level security;
 
@@ -178,7 +205,7 @@ create policy "Admins can manage categories"
 -- TABLE: teacher_profiles
 -- =============================================================================
 
-create table public.teacher_profiles (
+create table if not exists public.teacher_profiles (
   id                    uuid primary key default uuid_generate_v4(),
   user_id               uuid not null unique references public.users(id) on delete cascade,
   headline              text,
@@ -201,12 +228,12 @@ create table public.teacher_profiles (
   updated_at            timestamptz not null default now()
 );
 
-create index idx_teacher_profiles_user_id on public.teacher_profiles(user_id);
-create index idx_teacher_profiles_is_approved on public.teacher_profiles(is_approved);
-create index idx_teacher_profiles_rating on public.teacher_profiles(rating_average desc);
-create index idx_teacher_profiles_is_featured on public.teacher_profiles(is_featured);
-create index idx_teacher_profiles_tier on public.teacher_profiles(tier);
-create index idx_teacher_profiles_created_at on public.teacher_profiles(created_at desc);
+create index if not exists idx_teacher_profiles_user_id on public.teacher_profiles(user_id);
+create index if not exists idx_teacher_profiles_is_approved on public.teacher_profiles(is_approved);
+create index if not exists idx_teacher_profiles_rating on public.teacher_profiles(rating_average desc);
+create index if not exists idx_teacher_profiles_is_featured on public.teacher_profiles(is_featured);
+create index if not exists idx_teacher_profiles_tier on public.teacher_profiles(tier);
+create index if not exists idx_teacher_profiles_created_at on public.teacher_profiles(created_at desc);
 
 create trigger teacher_profiles_updated_at
   before update on public.teacher_profiles
@@ -244,7 +271,7 @@ create policy "Admins have full access to teacher profiles"
 -- TABLE: teacher_subjects
 -- =============================================================================
 
-create table public.teacher_subjects (
+create table if not exists public.teacher_subjects (
   id                uuid primary key default uuid_generate_v4(),
   teacher_id        uuid not null references public.teacher_profiles(id) on delete cascade,
   category_id       uuid not null references public.categories(id) on delete cascade,
@@ -255,8 +282,8 @@ create table public.teacher_subjects (
   unique(teacher_id, category_id)
 );
 
-create index idx_teacher_subjects_teacher_id on public.teacher_subjects(teacher_id);
-create index idx_teacher_subjects_category_id on public.teacher_subjects(category_id);
+create index if not exists idx_teacher_subjects_teacher_id on public.teacher_subjects(teacher_id);
+create index if not exists idx_teacher_subjects_category_id on public.teacher_subjects(category_id);
 
 alter table public.teacher_subjects enable row level security;
 
@@ -286,7 +313,7 @@ create policy "Admins can manage teacher subjects"
 -- TABLE: teacher_fees
 -- =============================================================================
 
-create table public.teacher_fees (
+create table if not exists public.teacher_fees (
   id               uuid primary key default uuid_generate_v4(),
   teacher_id       uuid not null references public.teacher_profiles(id) on delete cascade,
   category_id      uuid not null references public.categories(id) on delete cascade,
@@ -299,9 +326,9 @@ create table public.teacher_fees (
   created_at       timestamptz not null default now()
 );
 
-create index idx_teacher_fees_teacher_id on public.teacher_fees(teacher_id);
-create index idx_teacher_fees_category_id on public.teacher_fees(category_id);
-create index idx_teacher_fees_is_active on public.teacher_fees(is_active);
+create index if not exists idx_teacher_fees_teacher_id on public.teacher_fees(teacher_id);
+create index if not exists idx_teacher_fees_category_id on public.teacher_fees(category_id);
+create index if not exists idx_teacher_fees_is_active on public.teacher_fees(is_active);
 
 alter table public.teacher_fees enable row level security;
 
@@ -331,7 +358,7 @@ create policy "Admins can manage teacher fees"
 -- TABLE: sample_videos
 -- =============================================================================
 
-create table public.sample_videos (
+create table if not exists public.sample_videos (
   id                   uuid primary key default uuid_generate_v4(),
   teacher_id           uuid not null references public.teacher_profiles(id) on delete cascade,
   category_id          uuid not null references public.categories(id) on delete cascade,
@@ -346,9 +373,9 @@ create table public.sample_videos (
   created_at           timestamptz not null default now()
 );
 
-create index idx_sample_videos_teacher_id on public.sample_videos(teacher_id);
-create index idx_sample_videos_category_id on public.sample_videos(category_id);
-create index idx_sample_videos_is_active on public.sample_videos(is_active);
+create index if not exists idx_sample_videos_teacher_id on public.sample_videos(teacher_id);
+create index if not exists idx_sample_videos_category_id on public.sample_videos(category_id);
+create index if not exists idx_sample_videos_is_active on public.sample_videos(is_active);
 
 alter table public.sample_videos enable row level security;
 
@@ -378,7 +405,7 @@ create policy "Admins can manage sample videos"
 -- TABLE: students
 -- =============================================================================
 
-create table public.students (
+create table if not exists public.students (
   id                  uuid primary key default uuid_generate_v4(),
   user_id             uuid not null unique references public.users(id) on delete cascade,
   grade_level         text,
@@ -390,7 +417,7 @@ create table public.students (
   created_at          timestamptz not null default now()
 );
 
-create index idx_students_user_id on public.students(user_id);
+create index if not exists idx_students_user_id on public.students(user_id);
 
 alter table public.students enable row level security;
 
@@ -420,7 +447,7 @@ create policy "Admins have full access to students"
 -- TABLE: bookings
 -- =============================================================================
 
-create table public.bookings (
+create table if not exists public.bookings (
   id                  uuid primary key default uuid_generate_v4(),
   student_id          uuid not null references public.users(id) on delete restrict,
   teacher_id          uuid not null references public.users(id) on delete restrict,
@@ -443,12 +470,12 @@ create table public.bookings (
   constraint booking_amount_check check (amount = platform_fee + teacher_payout)
 );
 
-create index idx_bookings_student_id on public.bookings(student_id);
-create index idx_bookings_teacher_id on public.bookings(teacher_id);
-create index idx_bookings_status on public.bookings(status);
-create index idx_bookings_session_date on public.bookings(session_date);
-create index idx_bookings_created_at on public.bookings(created_at desc);
-create index idx_bookings_category_id on public.bookings(category_id);
+create index if not exists idx_bookings_student_id on public.bookings(student_id);
+create index if not exists idx_bookings_teacher_id on public.bookings(teacher_id);
+create index if not exists idx_bookings_status on public.bookings(status);
+create index if not exists idx_bookings_session_date on public.bookings(session_date);
+create index if not exists idx_bookings_created_at on public.bookings(created_at desc);
+create index if not exists idx_bookings_category_id on public.bookings(category_id);
 
 create trigger bookings_updated_at
   before update on public.bookings
@@ -491,7 +518,7 @@ create policy "Admins have full access to bookings"
 -- TABLE: payments
 -- =============================================================================
 
-create table public.payments (
+create table if not exists public.payments (
   id                  uuid primary key default uuid_generate_v4(),
   booking_id          uuid not null references public.bookings(id) on delete restrict,
   student_id          uuid not null references public.users(id) on delete restrict,
@@ -511,12 +538,12 @@ create table public.payments (
   updated_at          timestamptz not null default now()
 );
 
-create index idx_payments_booking_id on public.payments(booking_id);
-create index idx_payments_student_id on public.payments(student_id);
-create index idx_payments_teacher_id on public.payments(teacher_id);
-create index idx_payments_status on public.payments(status);
-create index idx_payments_razorpay_order_id on public.payments(razorpay_order_id);
-create index idx_payments_created_at on public.payments(created_at desc);
+create index if not exists idx_payments_booking_id on public.payments(booking_id);
+create index if not exists idx_payments_student_id on public.payments(student_id);
+create index if not exists idx_payments_teacher_id on public.payments(teacher_id);
+create index if not exists idx_payments_status on public.payments(status);
+create index if not exists idx_payments_razorpay_order_id on public.payments(razorpay_order_id);
+create index if not exists idx_payments_created_at on public.payments(created_at desc);
 
 create trigger payments_updated_at
   before update on public.payments
@@ -549,7 +576,7 @@ create policy "Admins have full access to payments"
 -- TABLE: reviews
 -- =============================================================================
 
-create table public.reviews (
+create table if not exists public.reviews (
   id                    uuid primary key default uuid_generate_v4(),
   booking_id            uuid not null unique references public.bookings(id) on delete restrict,
   student_id            uuid not null references public.users(id) on delete restrict,
@@ -566,12 +593,12 @@ create table public.reviews (
   updated_at            timestamptz not null default now()
 );
 
-create index idx_reviews_teacher_id on public.reviews(teacher_id);
-create index idx_reviews_student_id on public.reviews(student_id);
-create index idx_reviews_booking_id on public.reviews(booking_id);
-create index idx_reviews_is_published on public.reviews(is_published);
-create index idx_reviews_rating on public.reviews(rating);
-create index idx_reviews_created_at on public.reviews(created_at desc);
+create index if not exists idx_reviews_teacher_id on public.reviews(teacher_id);
+create index if not exists idx_reviews_student_id on public.reviews(student_id);
+create index if not exists idx_reviews_booking_id on public.reviews(booking_id);
+create index if not exists idx_reviews_is_published on public.reviews(is_published);
+create index if not exists idx_reviews_rating on public.reviews(rating);
+create index if not exists idx_reviews_created_at on public.reviews(created_at desc);
 
 create trigger reviews_updated_at
   before update on public.reviews
@@ -617,7 +644,7 @@ create policy "Admins have full access to reviews"
 -- TABLE: messages
 -- =============================================================================
 
-create table public.messages (
+create table if not exists public.messages (
   id              uuid primary key default uuid_generate_v4(),
   sender_id       uuid not null references public.users(id) on delete cascade,
   receiver_id     uuid not null references public.users(id) on delete cascade,
@@ -631,11 +658,11 @@ create table public.messages (
   constraint no_self_message check (sender_id != receiver_id)
 );
 
-create index idx_messages_sender_id on public.messages(sender_id);
-create index idx_messages_receiver_id on public.messages(receiver_id);
-create index idx_messages_booking_id on public.messages(booking_id);
-create index idx_messages_created_at on public.messages(created_at desc);
-create index idx_messages_is_read on public.messages(is_read) where is_read = false;
+create index if not exists idx_messages_sender_id on public.messages(sender_id);
+create index if not exists idx_messages_receiver_id on public.messages(receiver_id);
+create index if not exists idx_messages_booking_id on public.messages(booking_id);
+create index if not exists idx_messages_created_at on public.messages(created_at desc);
+create index if not exists idx_messages_is_read on public.messages(is_read) where is_read = false;
 
 alter table public.messages enable row level security;
 
@@ -665,7 +692,7 @@ create policy "Admins have full access to messages"
 -- TABLE: notifications
 -- =============================================================================
 
-create table public.notifications (
+create table if not exists public.notifications (
   id         uuid primary key default uuid_generate_v4(),
   user_id    uuid not null references public.users(id) on delete cascade,
   type       text not null,
@@ -677,9 +704,9 @@ create table public.notifications (
   created_at timestamptz not null default now()
 );
 
-create index idx_notifications_user_id on public.notifications(user_id);
-create index idx_notifications_is_read on public.notifications(is_read) where is_read = false;
-create index idx_notifications_created_at on public.notifications(created_at desc);
+create index if not exists idx_notifications_user_id on public.notifications(user_id);
+create index if not exists idx_notifications_is_read on public.notifications(is_read) where is_read = false;
+create index if not exists idx_notifications_created_at on public.notifications(created_at desc);
 
 alter table public.notifications enable row level security;
 
@@ -709,7 +736,7 @@ create policy "Admins have full access to notifications"
 -- TABLE: teacher_availability
 -- =============================================================================
 
-create table public.teacher_availability (
+create table if not exists public.teacher_availability (
   id          uuid primary key default uuid_generate_v4(),
   teacher_id  uuid not null references public.teacher_profiles(id) on delete cascade,
   day_of_week integer not null check (day_of_week >= 0 and day_of_week <= 6),
@@ -722,8 +749,8 @@ create table public.teacher_availability (
   constraint end_after_start check (end_time > start_time)
 );
 
-create index idx_teacher_availability_teacher_id on public.teacher_availability(teacher_id);
-create index idx_teacher_availability_day on public.teacher_availability(day_of_week);
+create index if not exists idx_teacher_availability_teacher_id on public.teacher_availability(teacher_id);
+create index if not exists idx_teacher_availability_day on public.teacher_availability(day_of_week);
 
 create trigger teacher_availability_updated_at
   before update on public.teacher_availability
@@ -757,7 +784,7 @@ create policy "Admins can manage teacher availability"
 -- TABLE: payouts
 -- =============================================================================
 
-create table public.payouts (
+create table if not exists public.payouts (
   id                    uuid primary key default uuid_generate_v4(),
   teacher_id            uuid not null references public.users(id) on delete restrict,
   amount                integer not null check (amount > 0),
@@ -772,9 +799,9 @@ create table public.payouts (
   constraint period_end_after_start check (period_end >= period_start)
 );
 
-create index idx_payouts_teacher_id on public.payouts(teacher_id);
-create index idx_payouts_status on public.payouts(status);
-create index idx_payouts_created_at on public.payouts(created_at desc);
+create index if not exists idx_payouts_teacher_id on public.payouts(teacher_id);
+create index if not exists idx_payouts_status on public.payouts(status);
+create index if not exists idx_payouts_created_at on public.payouts(created_at desc);
 
 create trigger payouts_updated_at
   before update on public.payouts
@@ -803,7 +830,7 @@ create policy "Service role can manage payouts"
 -- TABLE: platform_settings
 -- =============================================================================
 
-create table public.platform_settings (
+create table if not exists public.platform_settings (
   id          uuid primary key default uuid_generate_v4(),
   key         text not null unique,
   value       jsonb not null,
@@ -812,7 +839,7 @@ create table public.platform_settings (
   updated_at  timestamptz not null default now()
 );
 
-create index idx_platform_settings_key on public.platform_settings(key);
+create index if not exists idx_platform_settings_key on public.platform_settings(key);
 
 alter table public.platform_settings enable row level security;
 
@@ -833,7 +860,7 @@ create policy "Admins can manage platform settings"
 -- TABLE: audit_logs (immutable — no UPDATE or DELETE allowed)
 -- =============================================================================
 
-create table public.audit_logs (
+create table if not exists public.audit_logs (
   id          uuid primary key default uuid_generate_v4(),
   user_id     uuid references public.users(id) on delete set null,
   action      text not null,
@@ -846,11 +873,11 @@ create table public.audit_logs (
   created_at  timestamptz not null default now()
 );
 
-create index idx_audit_logs_user_id on public.audit_logs(user_id);
-create index idx_audit_logs_entity_type on public.audit_logs(entity_type);
-create index idx_audit_logs_entity_id on public.audit_logs(entity_id);
-create index idx_audit_logs_action on public.audit_logs(action);
-create index idx_audit_logs_created_at on public.audit_logs(created_at desc);
+create index if not exists idx_audit_logs_user_id on public.audit_logs(user_id);
+create index if not exists idx_audit_logs_entity_type on public.audit_logs(entity_type);
+create index if not exists idx_audit_logs_entity_id on public.audit_logs(entity_id);
+create index if not exists idx_audit_logs_action on public.audit_logs(action);
+create index if not exists idx_audit_logs_created_at on public.audit_logs(created_at desc);
 
 alter table public.audit_logs enable row level security;
 
@@ -1083,7 +1110,7 @@ alter table public.users add column if not exists
     setweight(to_tsvector('english', coalesce(full_name, '')), 'A')
   ) stored;
 
-create index idx_users_search on public.users using gin(search_vector);
+create index if not exists idx_users_search on public.users using gin(search_vector);
 
 alter table public.teacher_profiles add column if not exists
   search_vector tsvector
@@ -1092,7 +1119,7 @@ alter table public.teacher_profiles add column if not exists
     setweight(to_tsvector('english', coalesce(full_bio, '')), 'C')
   ) stored;
 
-create index idx_teacher_profiles_search on public.teacher_profiles using gin(search_vector);
+create index if not exists idx_teacher_profiles_search on public.teacher_profiles using gin(search_vector);
 
 alter table public.categories add column if not exists
   search_vector tsvector
@@ -1101,7 +1128,7 @@ alter table public.categories add column if not exists
     setweight(to_tsvector('english', coalesce(description, '')), 'B')
   ) stored;
 
-create index idx_categories_search on public.categories using gin(search_vector);
+create index if not exists idx_categories_search on public.categories using gin(search_vector);
 
 -- =============================================================================
 -- REALTIME: Enable realtime on chat and notifications tables

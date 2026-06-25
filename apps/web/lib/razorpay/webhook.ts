@@ -14,8 +14,9 @@ export function verifyRazorpaySignature(params: {
 }
 
 export function verifyWebhookSignature(payload: string, signature: string): boolean {
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET ?? process.env.RAZORPAY_KEY_SECRET!;
   const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+    .createHmac("sha256", secret)
     .update(payload)
     .digest("hex");
   return expectedSignature === signature;

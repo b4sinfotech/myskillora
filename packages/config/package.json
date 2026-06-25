@@ -5,5 +5,8 @@
   "exports": {
     "./tailwind": "./tailwind.config.ts",
     "./eslint": "./eslint.config.mjs"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
   }
 }

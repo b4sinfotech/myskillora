@@ -1,3 +1,5 @@
+"use client";
+
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import {
   LayoutDashboard, Users, UserCheck, CalendarDays, DollarSign,

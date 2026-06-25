@@ -1,3 +1,5 @@
+"use client";
+
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { LayoutDashboard, CalendarDays, Users, MessageSquare, Star, Settings } from "lucide-react";
 import type { SidebarItem } from "@/components/layout/DashboardSidebar";

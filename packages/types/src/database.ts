@@ -1,5 +1,13 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
+type Rel = {
+  foreignKeyName: string;
+  columns: string[];
+  isOneToOne: boolean;
+  referencedRelation: string;
+  referencedColumns: string[];
+};
+
 export type UserRole = "student" | "teacher" | "admin";
 export type CategoryType = "academic" | "activity" | "professional";
 export type TeacherTier = "bronze" | "silver" | "gold" | "elite";
@@ -40,6 +48,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["users"]["Insert"]>;
+        Relationships: never[];
       };
       profiles: {
         Row: {
@@ -69,6 +78,7 @@ export interface Database {
           gender?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+        Relationships: [Rel & { foreignKeyName: "profiles_user_id_fkey"; columns: ["user_id"]; isOneToOne: true; referencedRelation: "users"; referencedColumns: ["id"] }];
       };
       categories: {
         Row: {
@@ -95,6 +105,7 @@ export interface Database {
           sort_order?: number;
         };
         Update: Partial<Database["public"]["Tables"]["categories"]["Insert"]>;
+        Relationships: never[];
       };
       teacher_profiles: {
         Row: {
@@ -140,6 +151,7 @@ export interface Database {
           is_featured?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["teacher_profiles"]["Insert"]>;
+        Relationships: [Rel & { foreignKeyName: "teacher_profiles_user_id_fkey"; columns: ["user_id"]; isOneToOne: true; referencedRelation: "users"; referencedColumns: ["id"] }];
       };
       teacher_subjects: {
         Row: {
@@ -160,6 +172,10 @@ export interface Database {
           is_primary?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["teacher_subjects"]["Insert"]>;
+        Relationships: [
+          Rel & { foreignKeyName: "teacher_subjects_teacher_id_fkey"; columns: ["teacher_id"]; isOneToOne: false; referencedRelation: "teacher_profiles"; referencedColumns: ["id"] },
+          Rel & { foreignKeyName: "teacher_subjects_category_id_fkey"; columns: ["category_id"]; isOneToOne: false; referencedRelation: "categories"; referencedColumns: ["id"] }
+        ];
       };
       teacher_fees: {
         Row: {
@@ -186,6 +202,10 @@ export interface Database {
           is_active?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["teacher_fees"]["Insert"]>;
+        Relationships: [
+          Rel & { foreignKeyName: "teacher_fees_teacher_id_fkey"; columns: ["teacher_id"]; isOneToOne: false; referencedRelation: "teacher_profiles"; referencedColumns: ["id"] },
+          Rel & { foreignKeyName: "teacher_fees_category_id_fkey"; columns: ["category_id"]; isOneToOne: false; referencedRelation: "categories"; referencedColumns: ["id"] }
+        ];
       };
       sample_videos: {
         Row: {
@@ -216,6 +236,10 @@ export interface Database {
           is_active?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["sample_videos"]["Insert"]>;
+        Relationships: [
+          Rel & { foreignKeyName: "sample_videos_teacher_id_fkey"; columns: ["teacher_id"]; isOneToOne: false; referencedRelation: "teacher_profiles"; referencedColumns: ["id"] },
+          Rel & { foreignKeyName: "sample_videos_category_id_fkey"; columns: ["category_id"]; isOneToOne: false; referencedRelation: "categories"; referencedColumns: ["id"] }
+        ];
       };
       students: {
         Row: {
@@ -240,6 +264,7 @@ export interface Database {
           parent_phone?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["students"]["Insert"]>;
+        Relationships: [Rel & { foreignKeyName: "students_user_id_fkey"; columns: ["user_id"]; isOneToOne: true; referencedRelation: "users"; referencedColumns: ["id"] }];
       };
       bookings: {
         Row: {
@@ -283,6 +308,12 @@ export interface Database {
           cancelled_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["bookings"]["Insert"]>;
+        Relationships: [
+          Rel & { foreignKeyName: "bookings_student_id_fkey"; columns: ["student_id"]; isOneToOne: false; referencedRelation: "users"; referencedColumns: ["id"] },
+          Rel & { foreignKeyName: "bookings_teacher_id_fkey"; columns: ["teacher_id"]; isOneToOne: false; referencedRelation: "users"; referencedColumns: ["id"] },
+          Rel & { foreignKeyName: "bookings_category_id_fkey"; columns: ["category_id"]; isOneToOne: false; referencedRelation: "categories"; referencedColumns: ["id"] },
+          Rel & { foreignKeyName: "bookings_fee_id_fkey"; columns: ["fee_id"]; isOneToOne: false; referencedRelation: "teacher_fees"; referencedColumns: ["id"] }
+        ];
       };
       payments: {
         Row: {
@@ -322,6 +353,11 @@ export interface Database {
           metadata?: Json;
         };
         Update: Partial<Database["public"]["Tables"]["payments"]["Insert"]>;
+        Relationships: [
+          Rel & { foreignKeyName: "payments_booking_id_fkey"; columns: ["booking_id"]; isOneToOne: false; referencedRelation: "bookings"; referencedColumns: ["id"] },
+          Rel & { foreignKeyName: "payments_student_id_fkey"; columns: ["student_id"]; isOneToOne: false; referencedRelation: "users"; referencedColumns: ["id"] },
+          Rel & { foreignKeyName: "payments_teacher_id_fkey"; columns: ["teacher_id"]; isOneToOne: false; referencedRelation: "users"; referencedColumns: ["id"] }
+        ];
       };
       reviews: {
         Row: {
@@ -355,6 +391,11 @@ export interface Database {
           is_published?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["reviews"]["Insert"]>;
+        Relationships: [
+          Rel & { foreignKeyName: "reviews_booking_id_fkey"; columns: ["booking_id"]; isOneToOne: true; referencedRelation: "bookings"; referencedColumns: ["id"] },
+          Rel & { foreignKeyName: "reviews_student_id_fkey"; columns: ["student_id"]; isOneToOne: false; referencedRelation: "users"; referencedColumns: ["id"] },
+          Rel & { foreignKeyName: "reviews_teacher_id_fkey"; columns: ["teacher_id"]; isOneToOne: false; referencedRelation: "users"; referencedColumns: ["id"] }
+        ];
       };
       messages: {
         Row: {
@@ -381,6 +422,10 @@ export interface Database {
           read_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["messages"]["Insert"]>;
+        Relationships: [
+          Rel & { foreignKeyName: "messages_sender_id_fkey"; columns: ["sender_id"]; isOneToOne: false; referencedRelation: "users"; referencedColumns: ["id"] },
+          Rel & { foreignKeyName: "messages_receiver_id_fkey"; columns: ["receiver_id"]; isOneToOne: false; referencedRelation: "users"; referencedColumns: ["id"] }
+        ];
       };
       notifications: {
         Row: {
@@ -405,6 +450,7 @@ export interface Database {
           read_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["notifications"]["Insert"]>;
+        Relationships: [Rel & { foreignKeyName: "notifications_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "users"; referencedColumns: ["id"] }];
       };
       teacher_availability: {
         Row: {
@@ -426,6 +472,7 @@ export interface Database {
           is_available?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["teacher_availability"]["Insert"]>;
+        Relationships: [Rel & { foreignKeyName: "teacher_availability_teacher_id_fkey"; columns: ["teacher_id"]; isOneToOne: false; referencedRelation: "teacher_profiles"; referencedColumns: ["id"] }];
       };
       payouts: {
         Row: {
@@ -453,6 +500,7 @@ export interface Database {
           period_end: string;
         };
         Update: Partial<Database["public"]["Tables"]["payouts"]["Insert"]>;
+        Relationships: [Rel & { foreignKeyName: "payouts_teacher_id_fkey"; columns: ["teacher_id"]; isOneToOne: false; referencedRelation: "users"; referencedColumns: ["id"] }];
       };
       platform_settings: {
         Row: {
@@ -471,6 +519,7 @@ export interface Database {
           updated_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["platform_settings"]["Insert"]>;
+        Relationships: never[];
       };
       audit_logs: {
         Row: {
@@ -495,8 +544,10 @@ export interface Database {
           new_data?: Json | null;
           ip_address?: string | null;
           user_agent?: string | null;
+          metadata?: Json | null;
         };
         Update: never;
+        Relationships: [Rel & { foreignKeyName: "audit_logs_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "users"; referencedColumns: ["id"] }];
       };
     };
     Views: Record<string, never>;

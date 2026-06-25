@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { DollarSign, Users, Star, CalendarDays, TrendingUp, AlertCircle } from "lucide-react";
-import { formatCurrencyRaw, formatDate, formatRating } from "@/lib/utils";
+import { formatCurrency, formatDate, formatRating } from "@/lib/utils";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Teacher Dashboard" };
@@ -66,13 +66,13 @@ export default async function TeacherOverviewPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Earned"
-          value={formatCurrencyRaw(totalEarned)}
+          value={formatCurrency(totalEarned)}
           icon={DollarSign}
           iconColor="text-success"
         />
         <StatCard
           title="Pending Payout"
-          value={formatCurrencyRaw(pendingPayout)}
+          value={formatCurrency(pendingPayout)}
           icon={TrendingUp}
           iconColor="text-amber-500"
         />
@@ -148,7 +148,7 @@ export default async function TeacherOverviewPage() {
                     <Badge variant={booking.status === "confirmed" ? "success" : "amber"}>
                       {booking.status}
                     </Badge>
-                    <p className="text-sm font-semibold">{formatCurrencyRaw(booking.teacher_payout)}</p>
+                    <p className="text-sm font-semibold">{formatCurrency(booking.teacher_payout)}</p>
                   </div>
                 </div>
               ))}

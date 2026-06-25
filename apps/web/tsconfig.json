@@ -1,10 +1,20 @@
 {
-  "extends": "@myskillora/tsconfig/nextjs.json",
+  "extends": "../../packages/tsconfig/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
-    }
+      "@/*": ["./*"],
+      "@myskillora/types": ["../../packages/types/src/index.ts"],
+      "@myskillora/types/*": ["../../packages/types/src/*.ts"],
+      "@myskillora/utils": ["../../packages/utils/src/index.ts"],
+      "@myskillora/config/*": ["../../packages/config/*"]
+    },
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
+    "strict": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]

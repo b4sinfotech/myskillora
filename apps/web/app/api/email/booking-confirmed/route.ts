@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resend, FROM_EMAIL } from "@/lib/resend/client";
-import { formatDate, formatCurrencyRaw } from "@myskillora/utils";
+import { formatDate, formatCurrency } from "@myskillora/utils";
 
 export async function POST(request: Request) {
   try {
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
             <li><strong>Date:</strong> ${formatDate(booking.session_date)}</li>
             <li><strong>Time:</strong> ${booking.session_time}</li>
             <li><strong>Duration:</strong> ${booking.duration_minutes} minutes</li>
-            <li><strong>Amount:</strong> ${formatCurrencyRaw(booking.amount)}</li>
+            <li><strong>Amount:</strong> ${formatCurrency(booking.amount)}</li>
           </ul>
           ${booking.meeting_link ? `<p><a href="${booking.meeting_link}">Join Session</a></p>` : ""}
           <p>Happy learning!</p>
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
             <li><strong>Student:</strong> ${student?.full_name}</li>
             <li><strong>Date:</strong> ${formatDate(booking.session_date)}</li>
             <li><strong>Time:</strong> ${booking.session_time}</li>
-            <li><strong>Your Earnings:</strong> ${formatCurrencyRaw(booking.teacher_payout)}</li>
+            <li><strong>Your Earnings:</strong> ${formatCurrency(booking.teacher_payout)}</li>
           </ul>
           <p>— Team myskillora</p>
         `,
