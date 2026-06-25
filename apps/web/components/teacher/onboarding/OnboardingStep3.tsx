@@ -19,7 +19,7 @@ interface Props {
   onBack: () => void;
 }
 
-export function OnboardingStep3({ teacherProfile, videos, categories, userId, onNext, onBack }: Props) {
+export function OnboardingStep3({ teacherProfile, videos, categories, userId: _userId, onNext, onBack }: Props) {
   const supabase = createClient();
   const [videoList, setVideoList] = useState<SampleVideo[]>(videos);
   const [isUploading, setIsUploading] = useState(false);

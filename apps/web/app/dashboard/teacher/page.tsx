@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { DollarSign, Users, Star, CalendarDays, TrendingUp, AlertCircle } from "lucide-react";
+import { DollarSign, Users, Star, TrendingUp, AlertCircle } from "lucide-react";
 import { formatCurrency, formatDate, formatRating } from "@/lib/utils";
 import type { Metadata } from "next";
 

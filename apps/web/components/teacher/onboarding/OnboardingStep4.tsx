@@ -26,7 +26,7 @@ interface Props {
   onBack: () => void;
 }
 
-export function OnboardingStep4({ teacherProfile, availability, userId, onNext, onBack }: Props) {
+export function OnboardingStep4({ teacherProfile, availability, userId: _userId, onNext, onBack }: Props) {
   const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
 

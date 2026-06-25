@@ -11,7 +11,7 @@ import { RazorpayButton } from "@/components/booking/RazorpayButton";
 import { toast } from "@/hooks/useToast";
 import { cn, formatCurrency, formatDate, initials, getAvatarUrl } from "@/lib/utils";
 import { useBookingStore } from "@/store/booking.store";
-import type { TeacherFee, TeacherAvailability, Category, CreateBookingResponse } from "@myskillora/types";
+import type { TeacherFee, TeacherAvailability, CreateBookingResponse } from "@myskillora/types";
 
 interface Props {
   teacherUserId: string;
@@ -76,7 +76,7 @@ export function BookingModal({
   currentUserEmail,
 }: Props) {
   const router = useRouter();
-  const { isOpen, step, draft, setFee, setDateTime, setNotes, setStep, closeModal, reset } = useBookingStore();
+  const { isOpen, step, draft, setFee, setDateTime, setNotes, setStep, reset } = useBookingStore();
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);

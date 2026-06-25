@@ -5,11 +5,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReviewCard } from "@/components/ui/review-card";
-import { Separator } from "@/components/ui/separator";
 import { BookingCard } from "@/components/booking/BookingCard";
 import { formatRating, initials, getAvatarUrl } from "@/lib/utils";
 import { SUBJECT_COLORS } from "@myskillora/types";
-import type { TeacherWithDetails, ReviewWithStudent, Category } from "@myskillora/types";
+import type { TeacherWithDetails, ReviewWithStudent, Category, TeacherAvailability } from "@myskillora/types";
 import type { Metadata } from "next";
 
 interface PageProps {
@@ -229,7 +228,7 @@ export default async function TeacherProfilePage({ params }: PageProps) {
                   teacherName={t.user?.full_name ?? "Teacher"}
                   teacherAvatarUrl={t.user?.avatar_url ?? null}
                   fees={t.fees}
-                  availability={(t as unknown as { availability: import("@myskillora/types").TeacherAvailability[] }).availability ?? []}
+                  availability={(t as unknown as { availability: TeacherAvailability[] }).availability ?? []}
                   categories={t.subjects.map((s) => s.category as Category).filter(Boolean)}
                 />
               </CardContent>

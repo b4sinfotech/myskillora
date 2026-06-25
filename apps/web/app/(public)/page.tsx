@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Star, Users, BookOpen, Shield, Zap, Award } from "lucide-react";
+import { ArrowRight, Star, BookOpen, Shield, Zap, Award } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "myskillora — Find Expert Teachers for Every Skill",

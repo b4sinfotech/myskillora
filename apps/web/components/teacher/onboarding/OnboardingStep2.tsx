@@ -6,10 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/useToast";
 import { createClient } from "@/lib/supabase/client";
-import { formatCurrencyRaw } from "@/lib/utils";
 import type { TeacherProfile, TeacherSubject, TeacherFee, Category } from "@myskillora/types";
 
 interface Props {
@@ -22,7 +20,7 @@ interface Props {
   onBack: () => void;
 }
 
-export function OnboardingStep2({ teacherProfile, subjects, fees, categories, userId, onNext, onBack }: Props) {
+export function OnboardingStep2({ teacherProfile, subjects, fees, categories, userId: _userId, onNext, onBack }: Props) {
   const supabase = createClient();
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(
     subjects.map((s) => s.category_id)

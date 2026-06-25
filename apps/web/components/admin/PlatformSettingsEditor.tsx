@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/useToast";
 import { createClient } from "@/lib/supabase/client";
 import { Save } from "lucide-react";
-import type { PlatformSetting } from "@myskillora/types";
+import type { PlatformSetting, Json } from "@myskillora/types";
 
 interface Props {
   settings: PlatformSetting[];
@@ -32,7 +32,7 @@ export function PlatformSettingsEditor({ settings }: Props) {
 
       const { error } = await supabase
         .from("platform_settings")
-        .update({ value: parsed as import("@myskillora/types").Json })
+        .update({ value: parsed as Json })
         .eq("key", key);
 
       if (error) throw error;

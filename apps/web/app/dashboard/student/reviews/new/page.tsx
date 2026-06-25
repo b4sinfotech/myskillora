@@ -11,8 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "@/hooks/useToast";
 import { createClient } from "@/lib/supabase/client";
-import type { Metadata } from "next";
-
 const reviewSchema = z.object({
   rating: z.number().int().min(1, "Please select a rating").max(5),
   body: z.string().min(10, "Please write at least 10 characters").max(1000),

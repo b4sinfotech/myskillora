@@ -3,7 +3,7 @@
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import {
   LayoutDashboard, Users, CalendarDays, DollarSign,
-  MessageSquare, Star, Settings, Video, BookOpen, ClipboardList
+  MessageSquare, Star, Settings, ClipboardList
 } from "lucide-react";
 import type { SidebarItem } from "@/components/layout/DashboardSidebar";
 

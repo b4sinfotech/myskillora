@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { TeacherOnboardingWizard } from "@/components/teacher/TeacherOnboardingWizard";
 import type { Metadata } from "next";
+import type { TeacherSubject, Category } from "@myskillora/types";
 
 export const metadata: Metadata = { title: "Profile Setup" };
 
@@ -38,7 +39,7 @@ export default async function TeacherOnboardingPage() {
       </div>
       <TeacherOnboardingWizard
         teacherProfile={profileRes.data}
-        subjects={(subjectsRes.data ?? []) as unknown as (import("@myskillora/types").TeacherSubject & { category: import("@myskillora/types").Category })[]}
+        subjects={(subjectsRes.data ?? []) as unknown as (TeacherSubject & { category: Category })[]}
 
         fees={feesRes.data ?? []}
         videos={videosRes.data ?? []}

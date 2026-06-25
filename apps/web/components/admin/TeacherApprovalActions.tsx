@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/useToast";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { CheckCircle, XCircle, Shield } from "lucide-react";
 
@@ -14,7 +13,6 @@ interface Props {
 }
 
 export function TeacherApprovalActions({ teacherId, userId, isApproved }: Props) {
-  const supabase = createClient();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<string | null>(null);
 

@@ -40,17 +40,21 @@ export function OnboardingStep5({ userId, onBack }: Props) {
   const onSubmit = async (data: Form) => {
     setIsLoading(true);
     try {
-      // Store bank details in teacher_profiles.qualifications (encrypted at rest by Supabase)
-      // In production, use a dedicated encrypted field or Supabase Vault
-      const { data: profile } = await supabase
+      const bankDetails = {
+        accountHolderName: data.accountHolderName,
+        accountNumber: data.accountNumber,
+        ifscCode: data.ifscCode,
+        bankName: data.bankName,
+        upiId: data.upiId ?? null,
+      };
+
+      const { error: profileError } = await supabase
         .from("teacher_profiles")
-        .select("id")
-        .eq("user_id", userId)
-        .single();
+        .update({ qualifications: bankDetails })
+        .eq("user_id", userId);
 
-      if (!profile) throw new Error("Teacher profile not found");
+      if (profileError) throw profileError;
 
-      // Update onboarding_complete
       await supabase
         .from("users")
         .update({ onboarding_complete: true })

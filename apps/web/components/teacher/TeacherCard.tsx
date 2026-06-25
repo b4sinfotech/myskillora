@@ -1,6 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
-import { Star, MapPin, Clock, Users } from "lucide-react";
+import { Star, Clock, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

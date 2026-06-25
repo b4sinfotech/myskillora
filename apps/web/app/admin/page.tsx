@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserCheck, CalendarDays, DollarSign, Star, AlertTriangle } from "lucide-react";
+import { Users, UserCheck, CalendarDays, DollarSign, AlertTriangle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { Metadata } from "next";
 
